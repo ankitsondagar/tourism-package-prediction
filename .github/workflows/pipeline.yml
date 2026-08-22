@@ -49,10 +49,8 @@ jobs:
         with:
           name: data-splits
           path: |
-            Xtrain.csv
-            Xtest.csv
-            ytrain.csv
-            ytest.csv
+            tourism_project/data/splits/train.csv
+            tourism_project/data/splits/test.csv
 
   model-traning:
     needs: data-prep
@@ -69,6 +67,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: data-splits
+          path: tourism_project/data/splits
       - name: Start MLflow Server
         run: |
           nohup mlflow ui --host 0.0.0.0 --port 5000 &  # Run MLflow UI in the background
@@ -76,6 +75,10 @@ jobs:
       - name: Model Building
         run: |
           python tourism_project/model_building/train.py
+      - name: Check Model
+        run: |
+          ls -lh tourism_project/deployment/
+          test -f tourism_project/deployment/tourism_model.pkl
       - name: Commit Trained Model
         run: |
           git config user.name "github-actions[bot]"
