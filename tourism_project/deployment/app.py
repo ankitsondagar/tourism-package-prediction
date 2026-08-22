@@ -157,7 +157,7 @@ def render_prediction(fitted_model, record: pd.DataFrame) -> None:
     st.subheader("Prediction")
 
     if outcome == 1:
-        st.success("🎉 Customer is likely to purchase the tourism package.")
+        st.success("Customer is likely to purchase the tourism package.")
     else:
         st.info("Customer is unlikely to purchase the tourism package.")
 
