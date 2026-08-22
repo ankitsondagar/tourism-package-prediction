@@ -27,10 +27,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
 
 
-# ------------------------------------------------------------------
 # Directory / file locations
-# ------------------------------------------------------------------
-
 BASE_DIR = Path("tourism_project")
 
 train_csv_path = BASE_DIR / "data" / "splits" / "train.csv"
@@ -43,10 +40,7 @@ print("Train data source:", train_csv_path)
 print("Test data source:", test_csv_path)
 
 
-# ------------------------------------------------------------------
 # Sanity checks on inputs
-# ------------------------------------------------------------------
-
 def ensure_file_exists(path: Path, label: str) -> None:
     if not path.exists():
         raise FileNotFoundError(f"{label} file not found: {path}")
@@ -56,10 +50,7 @@ ensure_file_exists(train_csv_path, "Training")
 ensure_file_exists(test_csv_path, "Testing")
 
 
-# ------------------------------------------------------------------
 # Load datasets
-# ------------------------------------------------------------------
-
 training_data = pd.read_csv(train_csv_path)
 testing_data = pd.read_csv(test_csv_path)
 
@@ -67,10 +58,8 @@ print("Training set shape:", training_data.shape)
 print("Testing set shape:", testing_data.shape)
 
 
-# ------------------------------------------------------------------
-# Split features / target
-# ------------------------------------------------------------------
 
+# Split features / target
 label_column = "ProdTaken"
 
 if label_column not in training_data.columns:
@@ -83,10 +72,7 @@ features_test = testing_data.drop(columns=[label_column])
 target_test = testing_data[label_column]
 
 
-# ------------------------------------------------------------------
 # Drop identifier column (not predictive)
-# ------------------------------------------------------------------
-
 id_column = "CustomerID"
 
 if id_column in features_train.columns:
@@ -95,10 +81,7 @@ if id_column in features_train.columns:
     print(f"Dropped identifier column '{id_column}' from features.")
 
 
-# ------------------------------------------------------------------
 # Detect column types
-# ------------------------------------------------------------------
-
 cat_cols = features_train.select_dtypes(include=["object", "category"]).columns.tolist()
 num_cols = features_train.select_dtypes(exclude=["object", "category"]).columns.tolist()
 
@@ -106,10 +89,7 @@ print("\nCategorical features:", cat_cols)
 print("Numerical features:", num_cols)
 
 
-# ------------------------------------------------------------------
 # Build preprocessing + model pipeline
-# ------------------------------------------------------------------
-
 feature_transformer = ColumnTransformer(
     transformers=[
         ("cat_encode", OneHotEncoder(handle_unknown="ignore"), cat_cols),
@@ -132,10 +112,7 @@ model_pipeline = Pipeline(
 )
 
 
-# ------------------------------------------------------------------
 # Hyperparameter search space
-# ------------------------------------------------------------------
-
 hyperparam_grid = {
     "clf__n_estimators": [100, 200],
     "clf__max_depth": [3, 5, 7],
@@ -145,10 +122,7 @@ hyperparam_grid = {
 }
 
 
-# ------------------------------------------------------------------
 # MLflow experiment setup
-# ------------------------------------------------------------------
-
 mlflow.set_experiment("Tourism Package Prediction")
 
 with mlflow.start_run():
@@ -166,26 +140,20 @@ with mlflow.start_run():
 
     searcher.fit(features_train, target_train)
 
-    # ----------------------------------------------------------
+    
     # Best estimator found
-    # ----------------------------------------------------------
-
     tuned_model = searcher.best_estimator_
 
     print("\nBest hyperparameters found:")
     print(searcher.best_params_)
 
-    # ----------------------------------------------------------
+    
     # Generate predictions on the holdout set
-    # ----------------------------------------------------------
-
     predicted_labels = tuned_model.predict(features_test)
     predicted_probs = tuned_model.predict_proba(features_test)[:, 1]
 
-    # ----------------------------------------------------------
+    
     # Compute evaluation metrics
-    # ----------------------------------------------------------
-
     metrics = {
         "accuracy": accuracy_score(target_test, predicted_labels),
         "precision": precision_score(target_test, predicted_labels, zero_division=0),
@@ -199,27 +167,21 @@ with mlflow.start_run():
     for metric_name, metric_value in metrics.items():
         print(f"{metric_name}: {metric_value}")
 
-    # ----------------------------------------------------------
+    
     # Log hyperparameters and metrics to MLflow
-    # ----------------------------------------------------------
-
     mlflow.log_params(searcher.best_params_)
     mlflow.log_metrics(metrics)
 
-    # ----------------------------------------------------------
+    
     # Persist the trained model for deployment
-    # ----------------------------------------------------------
-
     deployment_dir.mkdir(parents=True, exist_ok=True)
     joblib.dump(tuned_model, saved_model_path)
 
     print("\nModel written to disk at:")
     print(saved_model_path)
 
-    # ----------------------------------------------------------
+    
     # Log the saved model artifact to MLflow
-    # ----------------------------------------------------------
-
     mlflow.log_artifact(str(saved_model_path), artifact_path="deployment_model")
 
 
