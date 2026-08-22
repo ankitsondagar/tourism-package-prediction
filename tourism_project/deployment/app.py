@@ -162,29 +162,6 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-
-# --------------------------------------------------------------
-# Sidebar — quick guide
-# --------------------------------------------------------------
-
-with st.sidebar:
-    st.markdown("## ℹ️ How it works")
-    st.write(
-        "1. Enter the customer's details in the form.\n"
-        "2. Click **Predict Package Purchase**.\n"
-        "3. Review the prediction, confidence score, and full profile."
-    )
-    st.markdown("---")
-    st.markdown("## 🧭 About")
-    st.write(
-        "This tool uses a trained machine learning model to estimate "
-        "whether a customer is likely to buy a tourism package, based "
-        "on demographic, behavioral, and sales-interaction data."
-    )
-    st.markdown("---")
-    st.caption("Built with Streamlit • Powered by scikit-learn")
-
-
 # --------------------------------------------------------------
 # Input form
 # --------------------------------------------------------------
